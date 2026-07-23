@@ -1,13 +1,13 @@
 #!/bin/bash
 set -e
 
-# 1. Capture the absolute path of the workspace root so CMake never loses it
+# 1. Force the compiler into the PATH *inside* this script's subshell
 WORKSPACE_DIR=$(pwd)
-TOOLCHAIN_ABS_PATH="$WORKSPACE_DIR/gcc-mipsel-none-elf"
+export PATH="$WORKSPACE_DIR/gcc-mipsel-none-elf/bin:$PATH"
 
-echo "Installing required build tools for GitHub Actions runner..."
-sudo apt-get update
-sudo apt-get install -y ninja-build
+# 2. Verify the compiler is accessible (This stops the phantom CMake errors)
+echo "Checking for MIPS toolchain..."
+mipsel-none-elf-gcc --version
 
 echo "Downloading official ps1-bare-metal SDK environment..."
 if [ ! -d "sdk" ]; then
@@ -50,8 +50,8 @@ echo "Building PlayStation Executable..."
 mkdir -p build
 cd build
 
-# 2. Use Ninja and the ABSOLUTE path to the toolchain
-cmake .. -G Ninja -DCMAKE_BUILD_TYPE="Release" -DTOOLCHAIN_PATH="$TOOLCHAIN_ABS_PATH"
-ninja xmb_wave
+# 3. Use default Unix Makefiles (Always installed on GitHub Runners)
+cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE="Release"
+make xmb_wave
 
 echo "Build complete! Your executable is generated successfully in sdk/build/src/xmb_wave/"

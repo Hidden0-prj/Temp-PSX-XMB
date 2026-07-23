@@ -41,8 +41,10 @@ python3 -m pip install Pillow
 echo "Building PlayStation Executable..."
 mkdir -p build
 cd build
-# Use -G Ninja and rely on the SDK's built-in toolchain configuration
-cmake .. -G Ninja -DCMAKE_BUILD_TYPE="Release"
-ninja xmb_wave
+
+# Explicitly pass the toolchain directory so CMake never gets confused
+# Drop Ninja and use the standard Makefiles available on all runners
+cmake .. -DCMAKE_BUILD_TYPE="Release" -DTOOLCHAIN_PATH="../../gcc-mipsel-none-elf"
+make xmb_wave
 
 echo "Build complete! Your executable is generated successfully in sdk/build/src/xmb_wave/"

@@ -3,7 +3,8 @@ set -e
 
 echo "Downloading official ps1-bare-metal SDK environment..."
 if [ ! -d "sdk" ]; then
-    git clone https://github.com/JonathanDotCel/ps1-bare-metal.git sdk
+    # Corrected the repository author to 'spicyjpeg'
+    git clone https://github.com/spicyjpeg/ps1-bare-metal.git sdk
 fi
 
 echo "Injecting custom project files..."

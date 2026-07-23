@@ -1,24 +1,32 @@
 #!/bin/bash
 set -e
 
+# 1. Capture the absolute path of the workspace root so CMake never loses it
+WORKSPACE_DIR=$(pwd)
+TOOLCHAIN_ABS_PATH="$WORKSPACE_DIR/gcc-mipsel-none-elf"
+
+echo "Installing required build tools for GitHub Actions runner..."
+sudo apt-get update
+sudo apt-get install -y ninja-build
+
 echo "Downloading official ps1-bare-metal SDK environment..."
 if [ ! -d "sdk" ]; then
     git clone https://github.com/spicyjpeg/ps1-bare-metal.git sdk
 fi
 
 echo "Injecting custom project files..."
-# 1. Remove default examples to speed up the build, but KEEP the SDK's core libc/common
+# Remove default examples to speed up the build, but KEEP the SDK's core libc/common
 rm -rf sdk/src/0*
 
-# 2. Inject our assets and tools into the SDK directory
+# Inject our assets and tools into the SDK directory
 cp -r tools sdk/tools
 cp -r assets sdk/assets
 
-# 3. Create our demo folder inside the SDK's source directory
+# Create our demo folder inside the SDK's source directory
 mkdir -p sdk/src/xmb_wave
 cp src/main.c sdk/src/xmb_wave/main.c
 
-# 4. Create a localized CMakeLists.txt so the SDK builds our module natively
+# Create a localized CMakeLists.txt so the SDK builds our module natively
 cat << 'EOF' > sdk/src/xmb_wave/CMakeLists.txt
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/diss_00_png.c
@@ -42,9 +50,8 @@ echo "Building PlayStation Executable..."
 mkdir -p build
 cd build
 
-# Explicitly pass the toolchain directory so CMake never gets confused
-# Drop Ninja and use the standard Makefiles available on all runners
-cmake .. -DCMAKE_BUILD_TYPE="Release" -DTOOLCHAIN_PATH="../../gcc-mipsel-none-elf"
-make xmb_wave
+# 2. Use Ninja and the ABSOLUTE path to the toolchain
+cmake .. -G Ninja -DCMAKE_BUILD_TYPE="Release" -DTOOLCHAIN_PATH="$TOOLCHAIN_ABS_PATH"
+ninja xmb_wave
 
 echo "Build complete! Your executable is generated successfully in sdk/build/src/xmb_wave/"

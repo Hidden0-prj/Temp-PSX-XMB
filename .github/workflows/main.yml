@@ -21,10 +21,6 @@ jobs:
           chmod +x .github/scripts/buildToolchain.sh
           ./.github/scripts/buildToolchain.sh
           
-      - name: Install Python Dependencies
-        run: |
-          python3 -m pip install Pillow
-          
       - name: Build and Inject Demo
         run: |
           export PATH=$PATH:$(pwd)/gcc-mipsel-none-elf/bin
